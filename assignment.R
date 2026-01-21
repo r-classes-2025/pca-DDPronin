@@ -2,18 +2,17 @@
 library(friends)
 library(tidyverse)
 library(tidytext)
-library(factoextra) 
-
+library(factoextra)
 
 # 1. отберите 6 главных персонажей (по количеству реплик)
 # сохраните как символьный вектор
 top_speakers <- count(friends, speaker, sort = TRUE)[1:6, "speaker"][[1]]
 
-# 2. отфильтруйте топ-спикеров, 
+# 2. отфильтруйте топ-спикеров,
 # токенизируйте их реплики, удалите из них цифры
 # столбец с токенами должен называться word
 # оставьте только столбцы speaker, word
-friends_tokens <- friends |> 
+friends_tokens <- friends |>
   filter(speaker %in% top_speakers) |>
   unnest_tokens(word, text) |>
   mutate(word = str_remove_all(word, "\\d+")) |>
@@ -30,9 +29,9 @@ friends_tf <- friends_tokens |>
   ungroup() |>
   select(speaker, word, tf)
 
-# 4. преобразуйте в широкий формат; 
-# столбец c именем спикера превратите в имя ряда, используя подходящую функцию 
-friends_tf_wide <- friends_tf |> 
+# 4. преобразуйте в широкий формат;
+# столбец c именем спикера превратите в имя ряда, используя подходящую функцию
+friends_tf_wide <- friends_tf |>
   pivot_wider(names_from = word, values_from = tf, values_fill = 0) |>
   column_to_rownames("speaker")
 
@@ -44,7 +43,7 @@ km.out <- kmeans(scale(friends_tf_wide), centers = 3, nstart = 20)
 
 # 6. примените к матрице метод главных компонент (prcomp)
 # центрируйте и стандартизируйте, использовав аргументы функции
-pca_fit <- prcomp(friends_tf_wide, scale = TRUE, center = TRUE)
+pca_fit <- prcomp(friends_tf_wide, scale. = TRUE)
 
 # 7. Покажите наблюдения и переменные вместе (биплот)
 # в качестве геома используйте текст (=имя персонажа)
@@ -56,7 +55,7 @@ q <- fviz_pca_biplot(
   geom = c("text"),
   habillage = as.factor(km.out$cluster),
   select.var = list(cos2 = 20),
-  repel = TRUE,
+  repel = FALSE,
   ggtheme = theme_minimal()
 ) +
   theme(legend.position = "none")
