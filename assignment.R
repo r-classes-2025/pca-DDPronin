@@ -6,10 +6,7 @@ library(factoextra)
 
 # 1. отберите 6 главных персонажей (по количеству реплик)
 # сохраните как символьный вектор
-top_speakers <- friends |>
-  count(speaker, sort = TRUE) |>
-  head(6) |>
-  pull(speaker)
+top_speakers <- count(friends, speaker, sort = TRUE)[1:6, "speaker"][[1]]
 
 # 2. отфильтруйте топ-спикеров,
 # токенизируйте их реплики, удалите из них цифры
@@ -28,8 +25,7 @@ friends_tf <- friends_tokens |>
   count(speaker, word) |>
   group_by(speaker) |>
   mutate(tf = n / sum(n)) |>
-  arrange(desc(n)) |>
-  head(500) |>
+  slice_max(n, n = 500, with_ties = FALSE) |>
   ungroup() |>
   select(speaker, word, tf)
 
@@ -47,7 +43,7 @@ km.out <- kmeans(scale(friends_tf_wide), centers = 3, nstart = 20)
 
 # 6. примените к матрице метод главных компонент (prcomp)
 # центрируйте и стандартизируйте, использовав аргументы функции
-pca_fit <- prcomp(friends_tf_wide, scale = TRUE, center = TRUE)
+pca_fit <- prcomp(friends_tf_wide, center = TRUE, scale. = TRUE)
 
 # 7. Покажите наблюдения и переменные вместе (биплот)
 # в качестве геома используйте текст (=имя персонажа)
@@ -57,8 +53,8 @@ pca_fit <- prcomp(friends_tf_wide, scale = TRUE, center = TRUE)
 q <- fviz_pca_biplot(
   pca_fit,
   geom = c("text"),
-  select.var = list(cos2 = 20),
   habillage = as.factor(km.out$cluster),
+  select.var = list(cos2 = 20),
   repel = FALSE,
   ggtheme = theme_minimal()
 ) +
